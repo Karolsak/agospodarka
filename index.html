@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaawansowany Symulator Gospodarczy</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 Zaawansowany Symulator Gospodarczy</h1>
+            <p class="subtitle">Model ekonomiczny łączący teorie Keynesa i Solowa z wpływem nowoczesnych technologii</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Panel kontrolny -->
+            <aside class="control-panel">
+                <div class="section">
+                    <h2>⚙️ Polityka Monetarna i Fiskalna</h2>
+
+                    <div class="slider-group">
+                        <label for="interestRate">
+                            Stopa Procentowa: <span id="interestRateValue">2.5</span>%
+                        </label>
+                        <input type="range" id="interestRate" min="0" max="15" step="0.1" value="2.5">
+                        <p class="hint">Wpływa na inwestycje i inflację</p>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="taxRate">
+                            Podatki: <span id="taxRateValue">20</span>%
+                        </label>
+                        <input type="range" id="taxRate" min="0" max="50" step="0.5" value="20">
+                        <p class="hint">Wpływa na konsumpcję i dochody budżetu</p>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="govtSpending">
+                            Wydatki Rządowe: <span id="govtSpendingValue">20</span>% PKB
+                        </label>
+                        <input type="range" id="govtSpending" min="5" max="50" step="0.5" value="20">
+                        <p class="hint">Mnożnik keynesowski, wpływ na bezrobocie</p>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="tariffRate">
+                            Cła: <span id="tariffRateValue">5</span>%
+                        </label>
+                        <input type="range" id="tariffRate" min="0" max="30" step="0.5" value="5">
+                        <p class="hint">Wpływa na handel międzynarodowy</p>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="investmentRate">
+                            Stopa Inwestycji: <span id="investmentRateValue">20</span>% PKB
+                        </label>
+                        <input type="range" id="investmentRate" min="5" max="40" step="0.5" value="20">
+                        <p class="hint">Kluczowe dla wzrostu kapitału (Model Solowa)</p>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎭 Scenariusze Ekonomiczne</h2>
+                    <div class="scenario-buttons">
+                        <button class="scenario-btn active" data-scenario="normal">📊 Normalny</button>
+                        <button class="scenario-btn" data-scenario="tech_boom">🚀 Boom Tech</button>
+                        <button class="scenario-btn" data-scenario="ai_revolution">🤖 Rewolucja AI</button>
+                        <button class="scenario-btn" data-scenario="domestic_crisis">📉 Kryzys Krajowy</button>
+                        <button class="scenario-btn" data-scenario="global_crisis">🌐 Kryzys Globalny</button>
+                        <button class="scenario-btn" data-scenario="green_transition">🌱 Zielona Transformacja</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>⏱️ Symulacja</h2>
+                    <div class="simulation-buttons">
+                        <button class="sim-btn" onclick="runSimulation(4)">1 Rok</button>
+                        <button class="sim-btn" onclick="runSimulation(20)">5 Lat</button>
+                        <button class="sim-btn primary" onclick="runSimulation(40)">Prognoza 10 Lat</button>
+                        <button class="sim-btn reset" onclick="resetSimulation()">Reset</button>
+                    </div>
+                </div>
+
+                <div class="section indicators">
+                    <h2>📊 Wskaźniki Ekonomiczne</h2>
+                    <div class="indicator-grid">
+                        <div class="indicator">
+                            <span class="indicator-label">PKB</span>
+                            <span class="indicator-value" id="gdpIndicator">100.0</span>
+                            <span class="indicator-unit">mld</span>
+                        </div>
+                        <div class="indicator">
+                            <span class="indicator-label">Bezrobocie</span>
+                            <span class="indicator-value" id="unemploymentIndicator">5.0</span>
+                            <span class="indicator-unit">%</span>
+                        </div>
+                        <div class="indicator">
+                            <span class="indicator-label">Inflacja</span>
+                            <span class="indicator-value" id="inflationIndicator">2.0</span>
+                            <span class="indicator-unit">%</span>
+                        </div>
+                        <div class="indicator">
+                            <span class="indicator-label">Kapitał</span>
+                            <span class="indicator-value" id="capitalIndicator">500.0</span>
+                            <span class="indicator-unit"></span>
+                        </div>
+                        <div class="indicator">
+                            <span class="indicator-label">Technologia</span>
+                            <span class="indicator-value" id="technologyIndicator">1.000</span>
+                            <span class="indicator-unit"></span>
+                        </div>
+                        <div class="indicator">
+                            <span class="indicator-label">Zaufanie</span>
+                            <span class="indicator-value" id="confidenceIndicator">100.0</span>
+                            <span class="indicator-unit"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section info">
+                    <h3>ℹ️ Informacje o modelu</h3>
+                    <ul>
+                        <li><strong>Model Solowa:</strong> Y = A × K^α × L^(1-α)</li>
+                        <li><strong>Model Keynesa:</strong> Y = C + I + G + NX</li>
+                        <li><strong>Krzywa Phillipsa:</strong> Relacja inflacja-bezrobocie</li>
+                        <li><strong>Reguła Taylora:</strong> Optymalna stopa procentowa</li>
+                        <li><strong>Prawo Okuna:</strong> PKB vs bezrobocie</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Panel wykresów -->
+            <main class="chart-panel">
+                <div class="chart-container">
+                    <canvas id="gdpChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="unemploymentChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="inflationChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="capitalChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="technologyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="confidenceChart"></canvas>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="economy_model.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

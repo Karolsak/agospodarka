@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaawansowany Symulator Gospodarczy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            height: fit-content;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .slider-group {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .slider-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .scenario-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .scenario-option {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-option:hover {
+            background: #e9ecef;
+        }
+
+        .scenario-option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .scenario-option label {
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .buttons-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.reset {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .indicators {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+        }
+
+        .indicators h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .indicator-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .indicator-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .indicator-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .charts-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        canvas {
+            max-height: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .buttons-group {
+                grid-template-columns: 1fr;
+            }
+
+            .indicators-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Zaawansowany Symulator Gospodarczy</h1>
+            <p class="subtitle">Uwzględnia modele Keynesa i Solowa, inflację, bezrobocie, politykę fiskalną i monetarną</p>
+        </header>
+
+        <div class="main-content">
+            <div class="controls-panel">
+                <div class="control-section">
+                    <h3>Parametry Polityki</h3>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Stopa Procentowa (%)</span>
+                            <span class="slider-value" id="interest_rate_value">2.5</span>
+                        </div>
+                        <input type="range" id="interest_rate" min="0" max="15" step="0.1" value="2.5">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Podatki (%)</span>
+                            <span class="slider-value" id="tax_rate_value">20.0</span>
+                        </div>
+                        <input type="range" id="tax_rate" min="0" max="50" step="0.1" value="20">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Wydatki Rządowe (% PKB)</span>
+                            <span class="slider-value" id="govt_spending_value">20.0</span>
+                        </div>
+                        <input type="range" id="govt_spending" min="5" max="50" step="0.1" value="20">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Cła (%)</span>
+                            <span class="slider-value" id="tariff_rate_value">5.0</span>
+                        </div>
+                        <input type="range" id="tariff_rate" min="0" max="30" step="0.1" value="5">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Stopa Inwestycji (% PKB)</span>
+                            <span class="slider-value" id="investment_rate_value">20.0</span>
+                        </div>
+                        <input type="range" id="investment_rate" min="5" max="40" step="0.1" value="20">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Scenariusz</h3>
+                    <div class="scenario-options">
+                        <div class="scenario-option">
+                            <input type="radio" name="scenario" id="normal" value="normal" checked>
+                            <label for="normal">Normalny</label>
+                        </div>
+                        <div class="scenario-option">
+                            <input type="radio" name="scenario" id="tech_boom" value="tech_boom">
+                            <label for="tech_boom">Boom Technologiczny</label>
+                        </div>
+                        <div class="scenario-option">
+                            <input type="radio" name="scenario" id="ai_revolution" value="ai_revolution">
+                            <label for="ai_revolution">Rewolucja AI</label>
+                        </div>
+                        <div class="scenario-option">
+                            <input type="radio" name="scenario" id="domestic_crisis" value="domestic_crisis">
+                            <label for="domestic_crisis">Kryzys Krajowy</label>
+                        </div>
+                        <div class="scenario-option">
+                            <input type="radio" name="scenario" id="global_crisis" value="global_crisis">
+                            <label for="global_crisis">Kryzys Globalny</label>
+                        </div>
+                        <div class="scenario-option">
+                            <input type="radio" name="scenario" id="green_transition" value="green_transition">
+                            <label for="green_transition">Zielona Transformacja</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Symulacja</h3>
+                    <div class="buttons-group">
+                        <button onclick="runSimulation(4)">Symuluj 1 rok</button>
+                        <button onclick="runSimulation(20)">Symuluj 5 lat</button>
+                        <button onclick="runSimulation(40)">Prognoza 10 lat</button>
+                        <button class="reset" onclick="resetSimulation()">Reset</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="indicators">
+                        <h3>Wskaźniki Ekonomiczne</h3>
+                        <div class="indicators-grid">
+                            <div class="indicator-item">
+                                <div class="indicator-label">PKB (mld)</div>
+                                <div class="indicator-value" id="ind_gdp">100.00</div>
+                            </div>
+                            <div class="indicator-item">
+                                <div class="indicator-label">Bezrobocie (%)</div>
+                                <div class="indicator-value" id="ind_unemployment">5.00</div>
+                            </div>
+                            <div class="indicator-item">
+                                <div class="indicator-label">Inflacja (%)</div>
+                                <div class="indicator-value" id="ind_inflation">2.00</div>
+                            </div>
+                            <div class="indicator-item">
+                                <div class="indicator-label">Kapitał</div>
+                                <div class="indicator-value" id="ind_capital">500.00</div>
+                            </div>
+                            <div class="indicator-item">
+                                <div class="indicator-label">Technologia</div>
+                                <div class="indicator-value" id="ind_technology">1.000</div>
+                            </div>
+                            <div class="indicator-item">
+                                <div class="indicator-label">Zaufanie Konsumentów</div>
+                                <div class="indicator-value" id="ind_consumer_confidence">100.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-panel">
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <canvas id="gdp_chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="unemployment_chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="inflation_chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="capital_chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="technology_chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="consumer_confidence_chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================
+        // ECONOMY STATE
+        // =====================================================
+        class EconomyState {
+            constructor() {
+                this.gdp = 100.0;
+                this.capital = 500.0;
+                this.labor = 100.0;
+                this.technology = 1.0;
+                this.unemployment = 5.0;
+                this.inflation = 2.0;
+                this.interest_rate = 2.5;
+                this.tax_rate = 20.0;
+                this.govt_spending = 20.0;
+                this.tariff_rate = 5.0;
+                this.productivity = 1.0;
+                this.consumer_confidence = 100.0;
+                this.investment_rate = 20.0;
+            }
+
+            clone() {
+                const newState = new EconomyState();
+                Object.assign(newState, this);
+                return newState;
+            }
+        }
+
+        // =====================================================
+        // ECONOMIC MODEL
+        // =====================================================
+        class EconomicModel {
+            constructor() {
+                // Parametry modelu Solowa
+                this.alpha = 0.35;
+                this.depreciation = 0.05;
+                this.savings_rate = 0.20;
+                this.population_growth = 0.01;
+                this.tech_growth = 0.02;
+
+                // Parametry Keynesowskie
+                this.mpc = 0.75;
+                this.multiplier_govt = 1.5;
+                this.multiplier_tax = -0.8;
+
+                // Krzywa Phillipsa
+                this.nairu = 5.0;
+                this.phillips_slope = 0.5;
+
+                // Reguła Taylora
+                this.taylor_inflation_target = 2.0;
+                this.taylor_output_weight = 0.5;
+
+                // Nowoczesne czynniki
+                this.ai_productivity_boost = 0.0;
+                this.green_tech_factor = 0.0;
+                this.globalization_factor = 1.0;
+            }
+
+            calculateGdpProduction(state) {
+                const effective_labor = state.labor * (1 - state.unemployment / 100) * state.productivity;
+                return state.technology * Math.pow(state.capital, this.alpha) * Math.pow(effective_labor, 1 - this.alpha);
+            }
+
+            calculateGdpExpenditure(state) {
+                // Konsumpcja
+                const disposable_income = state.gdp * (1 - state.tax_rate / 100);
+                const consumption = this.mpc * disposable_income + (state.consumer_confidence / 100) * 10;
+
+                // Inwestycje
+                const base_investment = state.investment_rate * state.gdp / 100;
+                const interest_penalty = (state.interest_rate - 2.0) * 2.0;
+                const investment = Math.max(0, base_investment - interest_penalty);
+
+                // Wydatki rządowe
+                const govt_spending = state.govt_spending * state.gdp / 100;
+
+                // Eksport netto
+                const net_exports = 10 - (state.tariff_rate * 0.5) * this.globalization_factor;
+
+                return consumption + investment + govt_spending + net_exports;
+            }
+
+            updateInflation(state) {
+                const unemployment_gap = this.nairu - state.unemployment;
+                const inflation_change = this.phillips_slope * unemployment_gap;
+                const money_supply_effect = (5.0 - state.interest_rate) * 0.3;
+
+                let new_inflation = state.inflation + inflation_change * 0.1 + money_supply_effect * 0.05;
+                return Math.max(-2.0, Math.min(15.0, new_inflation));
+            }
+
+            updateUnemployment(state, gdp_growth) {
+                const potential_growth = 2.5;
+                const okun_coefficient = 0.4;
+
+                const unemployment_change = -okun_coefficient * (gdp_growth - potential_growth);
+                const fiscal_effect = (state.govt_spending - 20) * 0.05;
+                const ai_displacement = this.ai_productivity_boost * 0.3;
+
+                let new_unemployment = state.unemployment + unemployment_change - fiscal_effect + ai_displacement;
+                return Math.max(0.5, Math.min(25.0, new_unemployment));
+            }
+
+            simulateQuarter(state, policy_changes) {
+                const new_state = state.clone();
+
+                // Zastosuj zmiany polityki
+                for (const [key, value] of Object.entries(policy_changes)) {
+                    new_state[key] = value;
+                }
+
+                // Oblicz PKB
+                const gdp_production = this.calculateGdpProduction(new_state);
+                const gdp_expenditure = this.calculateGdpExpenditure(new_state);
+
+                const previous_gdp = new_state.gdp;
+                new_state.gdp = 0.6 * gdp_production + 0.4 * gdp_expenditure;
+
+                // Wzrost PKB
+                const gdp_growth = ((new_state.gdp - previous_gdp) / previous_gdp) * 100;
+
+                // Aktualizuj bezrobocie
+                new_state.unemployment = this.updateUnemployment(new_state, gdp_growth);
+
+                // Aktualizuj inflację
+                new_state.inflation = this.updateInflation(new_state);
+
+                // Aktualizuj kapitał
+                const investment = new_state.investment_rate * new_state.gdp / 100;
+                const depreciation = this.depreciation * new_state.capital;
+                new_state.capital = new_state.capital + investment - depreciation;
+
+                // Wzrost technologii
+                const tech_growth_rate = this.tech_growth / 4 + this.ai_productivity_boost / 4;
+                new_state.technology = new_state.technology * (1 + tech_growth_rate);
+
+                // Wzrost siły roboczej
+                new_state.labor = new_state.labor * (1 + this.population_growth / 4);
+
+                // Produktywność
+                const education_effect = (new_state.govt_spending - 15) * 0.01;
+                new_state.productivity = state.productivity * (1 + tech_growth_rate + education_effect);
+
+                // Zaufanie konsumentów
+                const confidence_change = -(new_state.unemployment - 5.0) * 2 - Math.abs(new_state.inflation - 2.0) * 3;
+                new_state.consumer_confidence = Math.max(50, Math.min(150, state.consumer_confidence + confidence_change * 0.1));
+
+                return new_state;
+            }
+
+            applyScenario(scenario_type) {
+                if (scenario_type === 'normal') {
+                    this.ai_productivity_boost = 0.0;
+                    this.globalization_factor = 1.0;
+                    this.tech_growth = 0.02;
+                } else if (scenario_type === 'tech_boom') {
+                    this.ai_productivity_boost = 0.03;
+                    this.tech_growth = 0.05;
+                    this.globalization_factor = 1.2;
+                } else if (scenario_type === 'ai_revolution') {
+                    this.ai_productivity_boost = 0.08;
+                    this.tech_growth = 0.07;
+                    this.globalization_factor = 1.5;
+                } else if (scenario_type === 'domestic_crisis') {
+                    this.ai_productivity_boost = 0.0;
+                    this.tech_growth = 0.0;
+                    this.globalization_factor = 0.8;
+                } else if (scenario_type === 'global_crisis') {
+                    this.ai_productivity_boost = 0.0;
+                    this.tech_growth = -0.01;
+                    this.globalization_factor = 0.5;
+                } else if (scenario_type === 'green_transition') {
+                    this.green_tech_factor = 0.04;
+                    this.tech_growth = 0.03;
+                    this.ai_productivity_boost = 0.02;
+                }
+            }
+        }
+
+        // =====================================================
+        // GLOBAL STATE
+        // =====================================================
+        let model = new EconomicModel();
+        let currentState = new EconomyState();
+        let charts = {};
+
+        // =====================================================
+        // UI INITIALIZATION
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Slider event listeners
+            const sliders = ['interest_rate', 'tax_rate', 'govt_spending', 'tariff_rate', 'investment_rate'];
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider);
+                const valueElement = document.getElementById(slider + '_value');
+
+                element.addEventListener('input', function() {
+                    valueElement.textContent = parseFloat(this.value).toFixed(1);
+                });
+            });
+
+            // Initialize charts
+            initializeCharts();
+            updateIndicators();
+        });
+
+        // =====================================================
+        // CHART INITIALIZATION
+        // =====================================================
+        function initializeCharts() {
+            const chartConfigs = [
+                { id: 'gdp_chart', label: 'PKB (mld)', color: 'rgb(54, 162, 235)' },
+                { id: 'unemployment_chart', label: 'Bezrobocie (%)', color: 'rgb(255, 99, 132)' },
+                { id: 'inflation_chart', label: 'Inflacja (%)', color: 'rgb(75, 192, 192)' },
+                { id: 'capital_chart', label: 'Kapitał', color: 'rgb(153, 102, 255)' },
+                { id: 'technology_chart', label: 'Technologia', color: 'rgb(255, 159, 64)' },
+                { id: 'consumer_confidence_chart', label: 'Zaufanie Konsumentów', color: 'rgb(201, 203, 207)' }
+            ];
+
+            chartConfigs.forEach(config => {
+                const ctx = document.getElementById(config.id).getContext('2d');
+                charts[config.id] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: config.label,
+                            data: [],
+                            borderColor: config.color,
+                            backgroundColor: config.color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // =====================================================
+        // POLICY CHANGES
+        // =====================================================
+        function getPolicyChanges() {
+            return {
+                interest_rate: parseFloat(document.getElementById('interest_rate').value),
+                tax_rate: parseFloat(document.getElementById('tax_rate').value),
+                govt_spending: parseFloat(document.getElementById('govt_spending').value),
+                tariff_rate: parseFloat(document.getElementById('tariff_rate').value),
+                investment_rate: parseFloat(document.getElementById('investment_rate').value)
+            };
+        }
+
+        // =====================================================
+        // SIMULATION
+        // =====================================================
+        function runSimulation(quarters) {
+            // Zastosuj scenariusz
+            const scenario = document.querySelector('input[name="scenario"]:checked').value;
+            model.applyScenario(scenario);
+
+            // Reset do stanu początkowego
+            let state = new EconomyState();
+            const policy = getPolicyChanges();
+
+            // Historia
+            const history = {
+                quarters: [],
+                gdp: [],
+                unemployment: [],
+                inflation: [],
+                capital: [],
+                technology: [],
+                consumer_confidence: []
+            };
+
+            // Symuluj każdy kwartał
+            for (let q = 0; q < quarters; q++) {
+                state = model.simulateQuarter(state, policy);
+
+                history.quarters.push((q / 4).toFixed(2));
+                history.gdp.push(state.gdp.toFixed(2));
+                history.unemployment.push(state.unemployment.toFixed(2));
+                history.inflation.push(state.inflation.toFixed(2));
+                history.capital.push(state.capital.toFixed(2));
+                history.technology.push(state.technology.toFixed(3));
+                history.consumer_confidence.push(state.consumer_confidence.toFixed(2));
+            }
+
+            currentState = state;
+            updateIndicators();
+            updateCharts(history);
+        }
+
+        // =====================================================
+        // UPDATE INDICATORS
+        // =====================================================
+        function updateIndicators() {
+            document.getElementById('ind_gdp').textContent = currentState.gdp.toFixed(2);
+            document.getElementById('ind_unemployment').textContent = currentState.unemployment.toFixed(2);
+            document.getElementById('ind_inflation').textContent = currentState.inflation.toFixed(2);
+            document.getElementById('ind_capital').textContent = currentState.capital.toFixed(2);
+            document.getElementById('ind_technology').textContent = currentState.technology.toFixed(3);
+            document.getElementById('ind_consumer_confidence').textContent = currentState.consumer_confidence.toFixed(2);
+        }
+
+        // =====================================================
+        // UPDATE CHARTS
+        // =====================================================
+        function updateCharts(history) {
+            const chartMapping = {
+                'gdp_chart': 'gdp',
+                'unemployment_chart': 'unemployment',
+                'inflation_chart': 'inflation',
+                'capital_chart': 'capital',
+                'technology_chart': 'technology',
+                'consumer_confidence_chart': 'consumer_confidence'
+            };
+
+            for (const [chartId, dataKey] of Object.entries(chartMapping)) {
+                charts[chartId].data.labels = history.quarters;
+                charts[chartId].data.datasets[0].data = history[dataKey];
+                charts[chartId].update();
+            }
+        }
+
+        // =====================================================
+        // RESET SIMULATION
+        // =====================================================
+        function resetSimulation() {
+            model = new EconomicModel();
+            currentState = new EconomyState();
+
+            // Reset sliders
+            document.getElementById('interest_rate').value = 2.5;
+            document.getElementById('tax_rate').value = 20;
+            document.getElementById('govt_spending').value = 20;
+            document.getElementById('tariff_rate').value = 5;
+            document.getElementById('investment_rate').value = 20;
+
+            // Update slider values
+            document.getElementById('interest_rate_value').textContent = '2.5';
+            document.getElementById('tax_rate_value').textContent = '20.0';
+            document.getElementById('govt_spending_value').textContent = '20.0';
+            document.getElementById('tariff_rate_value').textContent = '5.0';
+            document.getElementById('investment_rate_value').textContent = '20.0';
+
+            // Reset scenario
+            document.getElementById('normal').checked = true;
+
+            updateIndicators();
+
+            // Clear charts
+            for (const chartId in charts) {
+                charts[chartId].data.labels = [];
+                charts[chartId].data.datasets[0].data = [];
+                charts[chartId].update();
+            }
+        }
+    </script>
+</body>
+</html>
